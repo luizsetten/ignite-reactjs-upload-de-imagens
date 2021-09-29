@@ -1,6 +1,6 @@
 import { Box, Button, Stack, useToast } from '@chakra-ui/react';
 import { useForm, RegisterOptions } from 'react-hook-form';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useMutation, useQueryClient } from 'react-query';
 
 import { api } from '../../services/api';
@@ -24,7 +24,6 @@ export function FormAddImage({ closeModal }: FormAddImageProps): JSX.Element {
 
   const formValidations: ValidationProps = {
     image: {
-      // TODO REQUIRED, LESS THAN 10 MB AND ACCEPTED FORMATS VALIDATIONS
       required: true,
       validate: {
         maxSize: file => {
@@ -34,23 +33,30 @@ export function FormAddImage({ closeModal }: FormAddImageProps): JSX.Element {
       },
     },
     title: {
-      // TODO REQUIRED, MIN AND MAX LENGTH VALIDATIONS
       required: true,
       minLength: 3,
       maxLength: 40,
     },
     description: {
-      // TODO REQUIRED, MAX LENGTH VALIDATIONS
       required: true,
       maxLength: 200,
     },
   };
 
   const queryClient = useQueryClient();
+
   const mutation = useMutation(
-    // TODO MUTATION API POST REQUEST,
+    async (data: Record<string, unknown>) => {
+      return api.post('/images', {
+        url: imageUrl,
+        title: data.title,
+        description: data.description,
+      });
+    },
     {
-      // TODO ONSUCCESS MUTATION
+      onSuccess: () => {
+        queryClient.invalidateQueries('images');
+      },
     }
   );
 
@@ -60,9 +66,14 @@ export function FormAddImage({ closeModal }: FormAddImageProps): JSX.Element {
 
   const onSubmit = async (data: Record<string, unknown>): Promise<void> => {
     try {
-      // TODO SHOW ERROR TOAST IF IMAGE URL DOES NOT EXISTS
-      // TODO EXECUTE ASYNC MUTATION
-      // TODO SHOW SUCCESS TOAST
+      if (!imageUrl) {
+        toast({
+          title: 'Upload de imagem não sucedido',
+          status: 'error',
+        });
+      }
+      await mutation.mutate(data);
+
       toast({
         title: 'Imagem salva!',
         status: 'success',
@@ -73,7 +84,6 @@ export function FormAddImage({ closeModal }: FormAddImageProps): JSX.Element {
         status: 'error',
       });
     } finally {
-      // TODO CLEAN FORM, STATES AND CLOSE MODAL
       reset();
       setImageUrl('');
       setLocalImageUrl('');

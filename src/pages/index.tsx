@@ -7,12 +7,25 @@ import { CardList } from '../components/CardList';
 import { api } from '../services/api';
 import { Loading } from '../components/Loading';
 import { Error } from '../components/Error';
-import { ImagesQueryResponse } from './api/images';
+
+interface Image {
+  title: string;
+  description: string;
+  url: string;
+  ts: number;
+  id: string;
+}
+
+interface FetchImagesPageResponse {
+  after: string;
+  data: Image[];
+}
 
 export default function Home(): JSX.Element {
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  const loadImages = async ({ pageParam = 0 }) => {
-    const response = await api.get<ImagesQueryResponse>(`images`, {
+  const loadImages = async ({
+    pageParam = 0,
+  }): Promise<FetchImagesPageResponse> => {
+    const response = await api.get<FetchImagesPageResponse>(`/api/images`, {
       params: {
         after: pageParam,
       },
@@ -28,20 +41,13 @@ export default function Home(): JSX.Element {
     fetchNextPage,
     hasNextPage,
   } = useInfiniteQuery('images', loadImages, {
-    getNextPageParam: (page, pages) => page.after,
+    getNextPageParam: page => page.after,
   });
 
   const formattedData = useMemo(() => {
     if (!data) return [];
-    const allData = data.pages.map(page => {
-      return page.data.map(image => {
-        return {
-          ...image.data,
-          ts: image.ts,
-          id: image.ref.id,
-        };
-      });
-    });
+    const allData = data.pages.map(page => page.data);
+
     return allData.flat();
   }, [data]);
 
@@ -63,6 +69,7 @@ export default function Home(): JSX.Element {
           <Button
             onClick={() => fetchNextPage()}
             isLoading={isFetchingNextPage}
+            disabled={isFetchingNextPage}
           >
             Load more images
           </Button>

@@ -71,7 +71,7 @@ export default function Home(): JSX.Element {
             isLoading={isFetchingNextPage}
             disabled={isFetchingNextPage}
           >
-            Load more images
+            Carregar mais
           </Button>
         )}
       </Box>

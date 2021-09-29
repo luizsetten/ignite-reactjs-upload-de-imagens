@@ -32,18 +32,16 @@ export default function Home(): JSX.Element {
   });
 
   const formattedData = useMemo(() => {
-    const array = [];
-    if (!data) return array;
-
-    data.pages.forEach(page => {
-      page.data.forEach(image => {
-        array.push({
+    const allData = data.pages.map(page => {
+      return page.data.map(image => {
+        return {
           ...image.data,
           ts: image.ts,
-        });
+          id: image.ref.id,
+        };
       });
     });
-    return array;
+    return allData.flat();
   }, [data]);
 
   if (isLoading) {

@@ -1,6 +1,6 @@
 import { Box, Button, Stack, useToast } from '@chakra-ui/react';
-import { useForm } from 'react-hook-form';
-import { useState } from 'react';
+import { useForm, RegisterOptions } from 'react-hook-form';
+import { useEffect, useState } from 'react';
 import { useMutation, useQueryClient } from 'react-query';
 
 import { api } from '../../services/api';
@@ -11,20 +11,38 @@ interface FormAddImageProps {
   closeModal: () => void;
 }
 
+interface ValidationProps {
+  image: RegisterOptions;
+  title: RegisterOptions;
+  description: RegisterOptions;
+}
+
 export function FormAddImage({ closeModal }: FormAddImageProps): JSX.Element {
   const [imageUrl, setImageUrl] = useState('');
   const [localImageUrl, setLocalImageUrl] = useState('');
   const toast = useToast();
 
-  const formValidations = {
+  const formValidations: ValidationProps = {
     image: {
       // TODO REQUIRED, LESS THAN 10 MB AND ACCEPTED FORMATS VALIDATIONS
+      required: true,
+      validate: {
+        maxSize: file => {
+          return file[0].size < 10485760;
+        },
+        format: file => file[0].type.includes('image/'),
+      },
     },
     title: {
       // TODO REQUIRED, MIN AND MAX LENGTH VALIDATIONS
+      required: true,
+      minLength: 3,
+      maxLength: 40,
     },
     description: {
       // TODO REQUIRED, MAX LENGTH VALIDATIONS
+      required: true,
+      maxLength: 200,
     },
   };
 
@@ -45,10 +63,21 @@ export function FormAddImage({ closeModal }: FormAddImageProps): JSX.Element {
       // TODO SHOW ERROR TOAST IF IMAGE URL DOES NOT EXISTS
       // TODO EXECUTE ASYNC MUTATION
       // TODO SHOW SUCCESS TOAST
+      toast({
+        title: 'Imagem salva!',
+        status: 'success',
+      });
     } catch {
-      // TODO SHOW ERROR TOAST IF SUBMIT FAILED
+      toast({
+        title: 'Erro ao salvar imagem!',
+        status: 'error',
+      });
     } finally {
       // TODO CLEAN FORM, STATES AND CLOSE MODAL
+      reset();
+      setImageUrl('');
+      setLocalImageUrl('');
+      closeModal();
     }
   };
 
@@ -61,20 +90,20 @@ export function FormAddImage({ closeModal }: FormAddImageProps): JSX.Element {
           setLocalImageUrl={setLocalImageUrl}
           setError={setError}
           trigger={trigger}
-          // TODO SEND IMAGE ERRORS
-          // TODO REGISTER IMAGE INPUT WITH VALIDATIONS
+          {...register('image', { ...formValidations.image })}
+          error={errors.image}
         />
 
         <TextInput
           placeholder="Título da imagem..."
-          // TODO SEND TITLE ERRORS
-          // TODO REGISTER TITLE INPUT WITH VALIDATIONS
+          {...register('title', { ...formValidations.title })}
+          error={errors.title}
         />
 
         <TextInput
           placeholder="Descrição da imagem..."
-          // TODO SEND DESCRIPTION ERRORS
-          // TODO REGISTER DESCRIPTION INPUT WITH VALIDATIONS
+          {...register('description', { ...formValidations.description })}
+          error={errors.description}
         />
       </Stack>
 

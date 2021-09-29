@@ -32,6 +32,7 @@ export default function Home(): JSX.Element {
   });
 
   const formattedData = useMemo(() => {
+    if (!data) return [];
     const allData = data.pages.map(page => {
       return page.data.map(image => {
         return {
